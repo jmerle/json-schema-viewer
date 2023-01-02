@@ -168,7 +168,7 @@ export const getTypeText = (initialSchema: JsonSchema | undefined, initialRefere
 
   const type = getOrInferType(s);
 
-  if ((preferLink && !currentReference.includes('properties/')) || isClickable(s)) {
+  if ((preferLink && !currentReference.includes('/properties/')) || isClickable(s)) {
     return <Click schema={s} reference={currentReference} fallbackTitle={getObjectName(s, context)} />;
   }
 
