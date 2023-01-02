@@ -138,7 +138,7 @@ function findDis(sr: Array<SchemaAndReference>, context: LookupContext): string 
   return findDiscriminant(sr.map(s => s.schema).filter(isPresent), context.lookup);
 }
 
-const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: string, context: LookupContext): JSX.Element => {
+const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: string, context: LookupContext, preferLink: boolean = false): JSX.Element => {
   const lookup = context.lookup;
   const Click = context.clickElement;
 
@@ -168,7 +168,7 @@ const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: st
 
   const type = getOrInferType(s);
 
-  if (isClickable(s)) {
+  if ((preferLink && !currentReference.includes('properties/')) || isClickable(s)) {
     return <Click schema={s} reference={currentReference} fallbackTitle={getObjectName(s, context)} />;
   }
 
@@ -183,7 +183,7 @@ const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: st
         // If you have an anything in an anyOf then you should just simplify to anything
         return <Anything />;
       } else {
-        const renderedSchemas = schemas.map(sx => getTypeText(sx.schema, sx.reference, context.clone(undefined)));
+        const renderedSchemas = schemas.map(sx => getTypeText(sx.schema, sx.reference, context.clone(undefined), true));
         if (renderedSchemas.length === 1) {
           compositeTypes.push(renderedSchemas[0]);
         } else {
@@ -197,7 +197,7 @@ const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: st
     if (s.oneOf !== undefined && s.oneOf.length > 0) {
       const schemas = s.oneOf.map(extractSchemaAndReference('oneOf', lookup, currentReference));
 
-      const renderedSchemas = schemas.map(sx => getTypeText(sx.schema, sx.reference, context.clone(findDis(schemas, context))));
+      const renderedSchemas = schemas.map(sx => getTypeText(sx.schema, sx.reference, context.clone(findDis(schemas, context)), true));
       if (renderedSchemas.length === 1) {
         compositeTypes.push(renderedSchemas[0]);
       } else {
@@ -210,7 +210,7 @@ const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: st
     if (s.allOf !== undefined && s.allOf.length > 0) {
       const schemas = s.allOf.map(extractSchemaAndReference('allOf', lookup, currentReference));
 
-      const renderedSchemas = schemas.map(sx => getTypeText(sx.schema, sx.reference, context.clone(findDis(schemas, context))));
+      const renderedSchemas = schemas.map(sx => getTypeText(sx.schema, sx.reference, context.clone(findDis(schemas, context)), true));
       if (renderedSchemas.length === 1) {
         compositeTypes.push(renderedSchemas[0]);
       } else {
@@ -222,7 +222,7 @@ const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: st
 
     if (s.not !== undefined) {
       const lookupResult = lookup.getSchema(s.not);
-      const inside = getTypeText(lookupResult?.schema, lookupResult?.baseReference || `${currentReference}/not`, context.clone(undefined));
+      const inside = getTypeText(lookupResult?.schema, lookupResult?.baseReference || `${currentReference}/not`, context.clone(undefined), true);
       compositeTypes.push(<Plain>not ({inside})</Plain>);
     }
 
