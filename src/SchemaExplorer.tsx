@@ -14,12 +14,13 @@ import { CodeBlockWithCopy } from './code-block-with-copy';
 import { generateJsonExampleFor, isExample } from './example';
 import { Stage, shouldShowInStage } from './stage';
 import { externalLinkTo, linkTo, PathElement } from './route-path';
-import { ClickElement, Type, Anything } from './Type';
+import { ClickElement, Type, Anything, LookupContext, getTypeText } from './Type';
 import { Link, LinkProps, useHistory, useLocation } from 'react-router-dom';
 import { getTitle, findTitle } from './title';
 import { LinkPreservingSearch, NavLinkPreservingSearch } from './search-preserving-link';
 import { dump } from 'js-yaml';
 import { isExternalReference } from './type-inference';
+import { ParameterMetadata } from './ParameterMetadata';
 
 interface SEPHeadProps {
   basePathSegments: Array<string>;
@@ -381,6 +382,7 @@ export const SchemaExplorerDetails: React.FC<SchemaExplorerDetailsProps> = props
       </DescriptionContainer>
       {mixinProps}
       {allRenderedProperties}
+      <ParameterMetadata schema={schema} lookup={lookup}></ParameterMetadata>
     </div>
   );
 };
@@ -505,6 +507,12 @@ export class SchemaExplorer extends React.PureComponent<SchemaExplorerProps, Sch
       });
     };
 
+    let typeText: JSX.Element | undefined = undefined;
+    if (schema.type !== undefined && schema.type !== 'object') {
+      const lookupContext = LookupContext.root(lookup, createClickElement({ basePathSegments, path }));
+      typeText = getTypeText(schema, currentPathElement.reference, lookupContext);
+    }
+
     return (
       <SchemaExplorer.Container>
         <SEPHead
@@ -514,7 +522,11 @@ export class SchemaExplorer extends React.PureComponent<SchemaExplorerProps, Sch
           onExpandClick={() => this.onExpandClick()}
         />
         <SchemaExplorer.HeadingContainer>
-          <SchemaExplorer.Heading>{getTitle(currentPathElement.reference, schema)}</SchemaExplorer.Heading>
+          <SchemaExplorer.Heading>
+            {getTitle(currentPathElement.reference, schema)}
+            {typeText && ' '}
+            {typeText}
+          </SchemaExplorer.Heading>
           <Permalink />
         </SchemaExplorer.HeadingContainer>
         <Tabs tabs={tabData} selected={ViewTypeToTab[this.state.view || 'details']} onSelect={onTabSelect} />

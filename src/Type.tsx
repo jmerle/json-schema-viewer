@@ -25,7 +25,7 @@ export type TypeProps = {
   clickElement: ClickElement;
 };
 
-class LookupContext {
+export class LookupContext {
   readonly lookup: Lookup;
   readonly clickElement: ClickElement;
   readonly discriminate: string | undefined;
@@ -138,7 +138,7 @@ function findDis(sr: Array<SchemaAndReference>, context: LookupContext): string 
   return findDiscriminant(sr.map(s => s.schema).filter(isPresent), context.lookup);
 }
 
-const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: string, context: LookupContext, preferLink: boolean = false): JSX.Element => {
+export const getTypeText = (initialSchema: JsonSchema | undefined, initialReference: string, context: LookupContext, preferLink: boolean = false): JSX.Element => {
   const lookup = context.lookup;
   const Click = context.clickElement;
 
